@@ -1,0 +1,23 @@
+sudo: required
+service:
+  - docker
+
+before_install:
+  - docker build -t kaushikdev/react-test -f ./client/Dockerfile.dev .
+  
+script:
+  - docker run -e CI=true kaushikdev/react-test npm test
+
+after_success:
+  - docker build -t kaushikdev/multi-client ./client
+  - docker build -t kaushikdev/multi-nginx ./nginx
+  - docker build -t kaushikdev/multi-server ./server
+  - docker build -t kaushikdev/multi-worker ./worker
+  # Login in Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take docker images and push them to docker hub
+  - docker push kaushikdev/multi-client
+  - docker push kaushikdev/multi-nginx
+  - docker push kaushikdev/multi-server
+  - docker push kaushikdev/multi-worker
+  
